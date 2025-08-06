@@ -1,0 +1,21 @@
+[build]
+  functions = "netlify/functions"
+  publish = "public"
+
+[functions]
+  node_bundler = "esbuild"
+  
+[[functions]]
+  path = "netlify/functions/test-website.js"
+  timeout = "10s"
+
+[dev]
+  functions = "netlify/functions"
+  port = 8888
+
+# Environment variables for production
+# Set these in your Netlify dashboard:
+# ANTHROPIC_API_KEY - Your Claude API key
+# WEBSITE_URL - Target website (defaults to app.giftround.com)
+# MAX_TEST_DURATION - Maximum test duration in seconds (defaults to 300)
+# DOCKER_HOST - Docker daemon host (for containerized environments)

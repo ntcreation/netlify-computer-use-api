@@ -1,0 +1,27 @@
+{
+  "name": "netlify-computer-use-api",
+  "version": "1.0.0",
+  "description": "Netlify Functions API for testing app.giftround.com using Claude's computer use tool",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'",
+    "test": "node test/test-api.js"
+  },
+  "keywords": ["netlify", "functions", "claude", "computer-use", "testing", "automation"],
+  "author": "Nathan Todd",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.1",
+    "dockerode": "^4.0.2",
+    "sharp": "^0.33.2",
+    "node-cron": "^3.0.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.15.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
