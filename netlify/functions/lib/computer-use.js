@@ -203,17 +203,17 @@ Current browser status: Open and displaying ${this.websiteUrl}`
   getComputerUseTools() {
     return [
       {
-        type: 'computer_20250124',
+        type: 'computer_20241022',
         name: 'computer',
         display_width_px: this.display.width,
         display_height_px: this.display.height
       },
       {
-        type: 'bash',
+        type: 'bash_20250124',
         name: 'bash'
       },
       {
-        type: 'text_editor',
+        type: 'text_editor_20250728',
         name: 'text_editor'
       }
     ];

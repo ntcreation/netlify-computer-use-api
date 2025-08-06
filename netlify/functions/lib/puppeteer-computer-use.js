@@ -250,7 +250,7 @@ Current browser status: Open and displaying ${this.websiteUrl}`
   getComputerUseTools() {
     return [
       {
-        type: 'computer_20250124',
+        type: 'computer_20241022',
         name: 'computer',
         display_width_px: this.display.width,
         display_height_px: this.display.height
