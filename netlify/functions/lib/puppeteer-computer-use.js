@@ -1,5 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
 
 class PuppeteerComputerUse {
   constructor(options) {
@@ -65,15 +66,24 @@ class PuppeteerComputerUse {
     this.addLog('Initializing Puppeteer browser');
     
     try {
+      // Configure Chromium for serverless environments
+      const isDev = process.env.NODE_ENV !== 'production';
+      
       this.browser = await puppeteer.launch({
         headless: true,
-        args: [
+        executablePath: isDev ? undefined : await chromium.executablePath(),
+        args: isDev ? [] : [
+          ...chromium.args,
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-extensions',
           `--window-size=${this.display.width},${this.display.height}`
         ]
       });
