@@ -7,7 +7,8 @@ A Netlify Functions API that uses Claude's computer use tool to test features on
 - Natural language website testing instructions
 - Automated browser interaction via Claude's computer use tool
 - Screenshot capture at each step
-- Docker containerized browser environment
+- **Dual execution modes**: Docker (full computer use) or Puppeteer (serverless)
+- **Netlify-ready**: Works on standard Netlify Functions without Docker
 - Rate limiting and timeout protection
 - Comprehensive error handling and logging
 
@@ -23,6 +24,8 @@ A Netlify Functions API that uses Claude's computer use tool to test features on
    export ANTHROPIC_API_KEY="your-claude-api-key"
    export WEBSITE_URL="app.giftround.com"  # optional
    export MAX_TEST_DURATION="300"  # optional
+   # For Docker mode (optional - defaults to Puppeteer)
+   export USE_DOCKER="true"
    ```
 
 3. **Development:**
@@ -32,8 +35,8 @@ A Netlify Functions API that uses Claude's computer use tool to test features on
 
 4. **Deploy to Netlify:**
    - Connect your repository to Netlify
-   - Set environment variables in Netlify dashboard
-   - Deploy
+   - Set environment variables in Netlify dashboard (see below)
+   - Deploy (uses Puppeteer mode by default - no Docker required!)
 
 ## API Usage
 
@@ -82,7 +85,8 @@ Environment variables:
 - `ANTHROPIC_API_KEY` - Required: Your Claude API key
 - `WEBSITE_URL` - Optional: Target website (defaults to app.giftround.com)
 - `MAX_TEST_DURATION` - Optional: Max test duration in seconds (defaults to 300)
-- `DOCKER_HOST` - Optional: Docker daemon host for containerized environments
+- `USE_DOCKER` - Optional: Set to "true" to use Docker mode (defaults to Puppeteer)
+- `DOCKER_HOST` - Optional: Docker daemon host (only needed for Docker mode)
 
 ## Security
 

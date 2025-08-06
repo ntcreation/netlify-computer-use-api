@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const ComputerUse = require('./lib/computer-use');
+const PuppeteerComputerUse = require('./lib/puppeteer-computer-use');
 const DockerManager = require('./lib/docker-manager');
 
 // In-memory queue for rate limiting (single concurrent test)
@@ -67,19 +68,11 @@ exports.handler = async (event, context) => {
     };
   }
 
-  // Check if we're in a Docker environment
-  if (process.env.NODE_ENV !== 'production' && !process.env.DOCKER_AVAILABLE) {
-    return {
-      statusCode: 503,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Docker environment not available. This API requires Docker to run browser automation.',
-        suggestion: 'Please deploy to a Docker-enabled environment like Netlify with container support',
-        timestamp: new Date().toISOString()
-      })
-    };
-  }
+  // Determine execution mode: Docker (full computer use) or Puppeteer (serverless)
+  const useDocker = process.env.USE_DOCKER === 'true' || process.env.DOCKER_AVAILABLE === 'true';
+  const executionMode = useDocker ? 'docker' : 'puppeteer';
+  
+  console.log(`Using execution mode: ${executionMode}`);
 
   let testId;
   try {
@@ -128,7 +121,7 @@ exports.handler = async (event, context) => {
 
     // Start the test with timeout
     const testResult = await Promise.race([
-      runTest(testId, instruction, testOptions),
+      runTest(testId, instruction, testOptions, executionMode),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Test timeout')), testOptions.timeout * 1000)
       )
@@ -168,27 +161,38 @@ exports.handler = async (event, context) => {
 /**
  * Run a single test
  */
-async function runTest(testId, instruction, options) {
+async function runTest(testId, instruction, options, executionMode = 'puppeteer') {
   const startTime = Date.now();
   let dockerManager = null;
   let computerUse = null;
 
   try {
-    console.log(`[${testId}] Initializing Docker container`);
-    
-    // Initialize Docker container
-    dockerManager = new DockerManager(testId);
-    await dockerManager.initialize();
+    if (executionMode === 'docker') {
+      console.log(`[${testId}] Initializing Docker container`);
+      
+      // Initialize Docker container
+      dockerManager = new DockerManager(testId);
+      await dockerManager.initialize();
 
-    console.log(`[${testId}] Initializing Computer Use tool`);
-    
-    // Initialize Computer Use
-    computerUse = new ComputerUse({
-      apiKey: CONFIG.ANTHROPIC_API_KEY,
-      dockerManager,
-      testId,
-      options
-    });
+      console.log(`[${testId}] Initializing Computer Use tool (Docker mode)`);
+      
+      // Initialize Computer Use with Docker
+      computerUse = new ComputerUse({
+        apiKey: CONFIG.ANTHROPIC_API_KEY,
+        dockerManager,
+        testId,
+        options
+      });
+    } else {
+      console.log(`[${testId}] Initializing Computer Use tool (Puppeteer mode)`);
+      
+      // Initialize Puppeteer Computer Use
+      computerUse = new PuppeteerComputerUse({
+        apiKey: CONFIG.ANTHROPIC_API_KEY,
+        testId,
+        options
+      });
+    }
 
     console.log(`[${testId}] Executing instruction: "${instruction}"`);
 
@@ -205,6 +209,7 @@ async function runTest(testId, instruction, options) {
       log: result.log || '',
       error: null,
       testId,
+      executionMode,
       timestamp: new Date().toISOString()
     };
 
@@ -213,7 +218,7 @@ async function runTest(testId, instruction, options) {
     
     // Try to capture error screenshot
     let errorScreenshot = null;
-    if (computerUse) {
+    if (computerUse && computerUse.captureScreenshot) {
       try {
         errorScreenshot = await computerUse.captureScreenshot('Error state');
       } catch (screenshotError) {
@@ -225,12 +230,13 @@ async function runTest(testId, instruction, options) {
       message: error.message,
       duration,
       screenshots: errorScreenshot ? [errorScreenshot] : [],
-      testId
+      testId,
+      executionMode
     };
 
   } finally {
-    // Cleanup Docker container
-    if (dockerManager) {
+    // Cleanup resources
+    if (executionMode === 'docker' && dockerManager) {
       try {
         await dockerManager.cleanup();
         console.log(`[${testId}] Docker cleanup completed`);
@@ -238,6 +244,7 @@ async function runTest(testId, instruction, options) {
         console.error(`[${testId}] Docker cleanup failed:`, cleanupError);
       }
     }
+    // Puppeteer cleanup is handled within the PuppeteerComputerUse class
   }
 }
 
