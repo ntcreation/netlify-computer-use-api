@@ -166,7 +166,7 @@ Current browser status: Open and displaying ${this.websiteUrl}`
         // Prepare tools for Claude
         const tools = this.getComputerUseTools();
 
-        // Call Claude with computer use
+        // Call Claude with computer use (beta enabled)
         const response = await this.anthropic.messages.create({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 4096,
