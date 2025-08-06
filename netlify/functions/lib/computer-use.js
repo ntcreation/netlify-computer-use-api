@@ -124,6 +124,7 @@ Current browser status: Open and displaying ${this.websiteUrl}`
           model: 'claude-sonnet-4-20250514',
           max_tokens: 4096,
           tools: tools,
+          betas: ['computer-use-2025-01-24'],
           messages: messages.concat([
             {
               role: 'assistant',
@@ -203,7 +204,7 @@ Current browser status: Open and displaying ${this.websiteUrl}`
   getComputerUseTools() {
     return [
       {
-        type: 'computer_20241022',
+        type: 'computer_20250124',
         name: 'computer',
         display_width_px: this.display.width,
         display_height_px: this.display.height
